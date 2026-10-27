@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizPulse - Business Operations Dashboard</title>
+  <style>
+    /* ==================== CSS STYLES ==================== */
+    :root {
+      --bg-primary: #f4f6f9;
+      --bg-surface: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 250px;
+      background-color: #0f172a;
+      color: #fff;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item a {
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active a, .nav-item a:hover {
+      background-color: #1e293b;
+      color: #fff;
+    }
+
+    /* Main Layout */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .content {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: var(--bg-surface);
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .stat-title {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+
+    .stat-trend {
+      font-size: 0.85rem;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .stat-trend.down { color: var(--danger); }
+
+    /* Dashboard Widgets */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .widget {
+      background: var(--bg-surface);
+      padding: 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .widget-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    /* Button Component */
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover { background-color: var(--primary-hover); }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-completed { background: #dcfce7; color: #15803d; }
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-cancelled { background: #fee2e2; color: #b91c1c; }
+
+    /* Search & Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    /* Simple Chart Styling */
+    .chart-container {
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      padding-top: 20px;
+    }
+
+    .chart-bar-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .chart-bar {
+      width: 100%;
+      background-color: var(--primary);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+    }
+
+    .chart-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      padding: 32px;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">🚀 BizPulse</div>
+    <ul class="nav-links">
+      <li class="nav-item active"><a href="#">📊 Dashboard</a></li>
+      <li class="nav-item"><a href="#">📦 Orders</a></li>
+      <li class="nav-item"><a href="#">👥 Customers</a></li>
+      <li class="nav-item"><a href="#">📈 Analytics</a></li>
+      <li class="nav-item"><a href="#">⚙️ Settings</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <header>
+      <h2>Dashboard Overview</h2>
+      <div class="user-profile">
+        <div class="avatar" id="userAvatar">JS</div>
+        <div>
+          <div style="font-weight: 600;">Jane Smith</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Admin Manager</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- Key Metrics / KPI Cards -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">Total Revenue</div>
+          <div class="stat-value" id="kpiRevenue">$0</div>
+          <div class="stat-trend">↑ 12.5% from last month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Total Orders</div>
+          <div class="stat-value" id="kpiOrders">0</div>
+          <div class="stat-trend">↑ 8.2% from last month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Active Customers</div>
+          <div class="stat-value">1,248</div>
+          <div class="stat-trend">↑ 4.1% from last week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Conversion Rate</div>
+          <div class="stat-value">3.42%</div>
+          <div class="stat-trend down">↓ 0.4% from last week</div>
+        </div>
+      </section>
+
+      <!-- Dashboard Grid: Orders & Sales Chart -->
+      <div class="dashboard-grid">
+        <!-- Recent Orders Table Widget -->
+        <div class="widget">
+          <div class="widget-header">
+            <h3 class="widget-title">Recent Transactions</h3>
+            <button class="btn" id="openModalBtn">+ New Order</button>
+          </div>
+          
+          <div class="controls">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search customer or ID...">
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Weekly Sales Bar Chart Widget -->
+        <div class="widget">
+          <div class="widget-header">
+            <h3 class="widget-title">Weekly Revenue Trend</h3>
+          </div>
+          <div class="chart-container" id="salesChart">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal for Creating New Orders -->
+  <div class="modal" id="orderModal">
+    <div class="modal-content">
+      <h3>Add New Order</h3>
+      <form id="orderForm" style="margin-top: 16px;">
+        <div class="form-group">
+          <label for="customerName">Customer Name</label>
+          <input type="text" id="customerName" required placeholder="e.g. John Doe">
+        </div>
+        <div class="form-group">
+          <label for="orderAmount">Amount ($)</label>
+          <input type="number" id="orderAmount" step="0.01" required placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="orderStatus">Status</label>
+          <select id="orderStatus">
+            <option value="Completed">Completed</option>
+            <option value="Pending">Pending</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="closeModalBtn">Cancel</button>
+          <button type="submit" class="btn">Create Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    // App Data Store
+    let orders = [
+      { id: 'ORD-1001', customer: 'Acme Corp', amount: 1200.00, status: 'Completed', date: '2026-03-28' },
+      { id: 'ORD-1002', customer: 'Global Tech', amount: 850.50, status: 'Pending', date: '2026-03-29' },
+      { id: 'ORD-1003', customer: 'Stark Industries', amount: 3400.00, status: 'Completed', date: '2026-03-29' },
+      { id: 'ORD-1004', customer: 'Wayne Ent.', amount: 450.00, status: 'Cancelled', date: '2026-03-30' },
+      { id: 'ORD-1005', customer: 'Cyberdyne', amount: 2100.00, status: 'Completed', date: '2026-03-31' }
+    ];
+
+    const weeklySales = [
+      { day: 'Mon', amount: 1200 },
+      { day: 'Tue', amount: 1900 },
+      { day: 'Wed', amount: 1500 },
+      { day: 'Thu', amount: 2200 },
+      { day: 'Fri', amount: 3000 },
+      { day: 'Sat', amount: 800 },
+      { day: 'Sun', amount: 1100 }
+    ];
+
+    // DOM Elements
+    const tableBody = document.getElementById('ordersTableBody');
+    const kpiRevenue = document.getElementById('kpiRevenue');
+    const kpiOrders = document.getElementById('kpiOrders');
+    const searchInput = document.getElementById('searchInput');
+    const modal = document.getElementById('orderModal');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const orderForm = document.getElementById('orderForm');
+    const chartContainer = document.getElementById('salesChart');
+
+    // Initialize Dashboard
+    function initDashboard() {
+      renderTable(orders);
+      calculateKPIs();
+      renderChart();
+    }
+
+    // Render Data Table
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      data.forEach(order => {
+        const row = document.createElement('tr');
+        
+        let statusClass = 'status-pending';
+        if (order.status === 'Completed') statusClass = 'status-completed';
+        if (order.status === 'Cancelled') statusClass = 'status-cancelled';
+
+        row.innerHTML = `
+          <td><strong>${order.id}</strong></td>
+          <td>${order.customer}</td>
+          <td>$${order.amount.toFixed(2)}</td>
+          <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+          <td>${order.date}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Update KPI Header Cards
+    function calculateKPIs() {
+      const totalRevenue = orders
+        .filter(o => o.status === 'Completed')
+        .reduce((sum, o) => sum + o.amount, 0);
+
+      kpiRevenue.textContent = `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      kpiOrders.textContent = orders.length;
+    }
+
+    // Render Interactive Bar Chart using standard HTML/CSS
+    function renderChart() {
+      chartContainer.innerHTML = '';
+      const maxAmount = Math.max(...weeklySales.map(s => s.amount));
+
+      weeklySales.forEach(item => {
+        const heightPercentage = (item.amount / maxAmount) * 100;
+        
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'chart-bar-wrapper';
+        barWrapper.innerHTML = `
+          <div class="chart-bar" style="height: ${heightPercentage}%;" title="$${item.amount}"></div>
+          <span class="chart-label">${item.day}</span>
+        `;
+        chartContainer.appendChild(barWrapper);
+      });
+    }
+
+    // Search and Filter logic
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = orders.filter(o => 
+        o.customer.toLowerCase().includes(term) || 
+        o.id.toLowerCase().includes(term)
+      );
+      renderTable(filtered);
+    });
+
+    // Modal Handlers
+    openModalBtn.addEventListener('click', () => modal.classList.add('active'));
+    closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+    // Handle Adding New Orders
+    orderForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const newOrder = {
+        id: `ORD-${1001 + orders.length}`,
+        customer: document.getElementById('customerName').value,
+        amount: parseFloat(document.getElementById('orderAmount').value),
+        status: document.getElementById('orderStatus').value,
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      orders.unshift(newOrder); // Add to beginning of array
+      
+      renderTable(orders);
+      calculateKPIs();
+      
+      // Reset Form & Close Modal
+      orderForm.reset();
+      modal.classList.remove('active');
+    });
+
+    // Run on startup
+    initDashboard();
+  </script>
+</body>
+</html>
